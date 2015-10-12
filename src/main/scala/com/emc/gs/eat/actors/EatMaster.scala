@@ -6,7 +6,8 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.event.Logging
 import akka.routing.RoundRobinRouter
 import com.emc.gs.eat.host.{Host, HostAnalysisResult}
-import com.emc.gs.eat.input.InputParser
+import com.emc.gs.eat.input.HostInputParser
+import com.github.tototoshi.csv.CSVWriter
 
 import scala.concurrent.duration._
 
@@ -26,14 +27,27 @@ class EatMaster(hostFiles: Seq[File], outputDir: File, listener: ActorRef)
     Props[HostAnalyzer].withRouter(RoundRobinRouter(4)), name = "hostAnalysisRouter")
   var nrOfHosts: Int = _
   var nrOfHostsProcessed: Int = _
+  var errors: Seq[List[String]] = Seq()
 
   def receive = {
     case ProcessHosts =>
       parseHostDataAndInitiateAnalysis()
-    case Result(hostAnalysisResult) =>
+    case AnalyzeHostResult(hostAnalysisResult) =>
       processResult(hostAnalysisResult)
+    case error@AnalyzeHostError(host, message, thrown) => processError(error)
     case _ =>
       log.warning("Invalid message received by EatMaster")
+  }
+
+  /**
+   * If an error occurs, store it for logging
+   *
+   * @param error the error information for logging
+   */
+  def processError(error: AnalyzeHostError): Unit = {
+    log.error("An error occurred connecting to %s".format(error.host.address))
+    errors = errors :+ List(error.host.address)
+    incrementAndCheckProcessedHosts()
   }
 
   /**
@@ -42,9 +56,26 @@ class EatMaster(hostFiles: Seq[File], outputDir: File, listener: ActorRef)
    * @param hostAnalysisResult the result from a host analysis
    */
   def processResult(hostAnalysisResult: HostAnalysisResult): Unit = {
-    nrOfHostsProcessed += 1
     log.info("Result received")
+    incrementAndCheckProcessedHosts()
+  }
+
+  def incrementAndCheckProcessedHosts(): Unit = {
+    nrOfHostsProcessed += 1
     if (nrOfHostsProcessed == nrOfHosts) {
+      if (errors.nonEmpty) {
+        try {
+          val errorOutputFile = new File(outputDir, "hostErrors.csv")
+          val writer = CSVWriter.open(errorOutputFile)
+          try {
+            writer.writeAll(errors)
+          } finally {
+            writer.close()
+          }
+        } catch {
+          case e: Exception => log.error("An error occurred writing the error log file", e)
+        }
+      }
       listener ! AnalysisComplete(duration = (System.currentTimeMillis - start).millis)
       context.stop(self)
     }
@@ -54,9 +85,17 @@ class EatMaster(hostFiles: Seq[File], outputDir: File, listener: ActorRef)
    * Processes the host input data and creates an actor for each host provided which runs analysis on that host.
    */
   def parseHostDataAndInitiateAnalysis(): Unit = {
-    val hosts = InputParser.parseCsvFiles(hostFiles).map(hostInfo => parseHost(hostInfo))
-    nrOfHosts = hosts.length
-    for (host <- hosts) hostAnalysisRouter ! AnalyzeHost(host, outputDir)
+    try {
+
+      val hosts = HostInputParser.parseCsvFiles(hostFiles).map(hostInfo => parseHost(hostInfo))
+      nrOfHosts = hosts.length
+      for ((host, index) <- hosts.zipWithIndex) hostAnalysisRouter ! AnalyzeHost(host, index, outputDir)
+
+    } catch {
+      case e: Exception =>
+        listener ! AnalysisFailed("An error occurred processing the Host input CSV: \n\t%s".format(e.getMessage))
+        context.stop(self)
+    }
   }
 
   /**
