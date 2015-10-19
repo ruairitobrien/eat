@@ -1,3 +1,13 @@
+val akkaVersion = "2.3.14"
+val scalaTestVersion = "2.1.3"
+val scalaCsvVersion = "1.2.2"
+val scoptVersion = "3.3.0"
+val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % "test"
+val scalaCsv = "com.github.tototoshi" %% "scala-csv" % scalaCsvVersion
+val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
+val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
+val scopt = "com.github.scopt" %% "scopt" % scoptVersion
+
 lazy val commonSettings = Seq(
   organization := "com.emc.gs.eat",
   version := "0.0.1",
@@ -12,16 +22,7 @@ lazy val app = (project in file(".")).
     libraryDependencies += scalaCsv,
     libraryDependencies += akkaActor,
     libraryDependencies += akkaTestKit,
-    libraryDependencies += scopt,
-    assemblyJarName in assembly := "eat.jar",
-    mainClass in assembly := Some("com.emc.gs.eat.Main")
+    libraryDependencies += scopt
+//    assemblyJarName in assembly := "eat.jar",
+//    mainClass in assembly := Some("com.emc.gs.eat.Main")
   )
-val akkaVersion = "2.3.14"
-val scalaTestVersion = "2.1.3"
-val scalaCsvVersion = "1.2.2"
-val scoptVersion = "3.3.0"
-val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % "test"
-val scalaCsv = "com.github.tototoshi" %% "scala-csv" % scalaCsvVersion
-val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
-val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
-val scopt = "com.github.scopt" %% "scopt" % scoptVersion
