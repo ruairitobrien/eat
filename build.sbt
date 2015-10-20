@@ -1,5 +1,5 @@
 val akkaVersion = "2.3.14"
-val scalaTestVersion = "2.1.3"
+val scalaTestVersion = "2.2.4"
 val scalaCsvVersion = "1.2.2"
 val scoptVersion = "3.3.0"
 val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion % "test"
@@ -23,6 +23,6 @@ lazy val app = (project in file(".")).
     libraryDependencies += akkaActor,
     libraryDependencies += akkaTestKit,
     libraryDependencies += scopt
-//    assemblyJarName in assembly := "eat.jar",
-//    mainClass in assembly := Some("com.emc.gs.eat.Main")
+    //assemblyJarName in assembly := "eat.jar",
+    //mainClass in assembly := Some("com.emc.gs.eat.Main")
   )

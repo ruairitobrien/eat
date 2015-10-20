@@ -1,0 +1,4 @@
+username,password,address,os,protocol
+john,secret,10.66.77.36,linux,ssh
+john,supersecret,10.66.77.37,linux,ssh
+lisa,moresecret,10.66.77.38,windows

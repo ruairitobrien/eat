@@ -6,6 +6,8 @@ import akka.actor.Actor
 import akka.event.Logging
 import com.emc.gs.eat.host.{Host, HostAnalysisResult}
 
+import scala.sys.process._
+
 /**
  * This actor is in charge of connecting to a host and doing any analysis i.e. executing a grab.
  * Any errors will be reported back to the Master which is responsible for reporting that error.
@@ -34,19 +36,43 @@ class HostAnalyzer extends Actor {
    */
   def analyzeHost(host: Host, index: Int, outputDir: File): HostAnalysisResult = {
     validateHost(host)
-    val r = scala.util.Random
+
+    if (host.os.toLowerCase == "esxi") {
+      runEsxiGrab(host)
+    } else if (host.os.toLowerCase == "windows") {
+      runWindowsGrab(host)
+    } else if (host.os.toLowerCase == "linux") {
+      runLinuxGrab(host)
+    } else {
+      throw new RuntimeException("Invalid operating system provided")
+    }
+
+    /** val r = scala.util.Random
     Thread.sleep(r.nextInt(2000))
     if (r.nextBoolean())
       throw new RuntimeException("Imagine something bad happened connecting to a host or processing a grab")
 
     val output = new File(outputDir, "%s-%s-pretend-i-am-a-grab".format(index, host.address))
     output.createNewFile()
-
-    new HostAnalysisResult()
+      */
   }
 
   def validateHost(host: Host): Unit = {
     // TODO: do I need to validate anything here?
+  }
+
+  def runEsxiGrab(host: Host): HostAnalysisResult = {
+    val res: Int = "C:\\Users\\obrier3\\Desktop\\EAT-DEMO\\app\\EMC-ESXi-GRAB-1.3.6\\emcgrab.bat -host 10.73.58.3 -user root -password emc2002 -autoexec -legal -vmsupport –noclariion" !
+
+    new HostAnalysisResult()
+  }
+
+  def runWindowsGrab(host: Host): HostAnalysisResult = {
+    new HostAnalysisResult()
+  }
+
+  def runLinuxGrab(host: Host): HostAnalysisResult = {
+    new HostAnalysisResult()
   }
 
 }
