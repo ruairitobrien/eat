@@ -14,9 +14,11 @@ class HostAnalysisListener extends Actor {
       println("\n\tAll done: \t\t\n\tRunning time: \t%s"
         .format(duration))
       context.system.shutdown()
+      System.exit(0)
     case AnalysisFailed(message) =>
       println(message)
       context.system.shutdown()
+      System.exit(0)
     case _ => log.warning("An unexpected message was received by HostAnalysisListener")
   }
 }

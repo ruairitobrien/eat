@@ -1,12 +1,10 @@
 package com.emc.gs.eat.actors
 
-import java.io.File
-
 import akka.actor.Actor
 import akka.event.Logging
+import com.emc.gs.eat.Config
+import com.emc.gs.eat.clients.{EsxiClient, SSHClient, WindowsClient}
 import com.emc.gs.eat.host.{Host, HostAnalysisResult}
-
-import scala.sys.process._
 
 /**
  * This actor is in charge of connecting to a host and doing any analysis i.e. executing a grab.
@@ -16,11 +14,12 @@ class HostAnalyzer extends Actor {
   val log = Logging(context.system, this)
 
   def receive = {
-    case AnalyzeHost(host, index, outputDir) =>
+    case AnalyzeHost(host, index, config) =>
       try {
-        sender ! AnalyzeHostResult(analyzeHost(host, index, outputDir))
+        sender ! AnalyzeHostResult(analyzeHost(host, index, config))
       } catch {
         case t: Throwable =>
+          println(t)
           sender ! AnalyzeHostError(host, "An error occurred processing the host", Some(t))
       }
     case _ => log.warning("An unexpected message was received by HostAnalyzer")
@@ -31,48 +30,26 @@ class HostAnalyzer extends Actor {
    *
    * @param host the host connection details
    * @param index the index used to ensure uniqueness of output file name
-   * @param outputDir the directory to write out files to
+   * @param config the configuration for host analysis
    * @return the host analysis result for feedback to the parent actor
    */
-  def analyzeHost(host: Host, index: Int, outputDir: File): HostAnalysisResult = {
+  def analyzeHost(host: Host, index: Int, config: Config): HostAnalysisResult = {
     validateHost(host)
 
     if (host.os.toLowerCase == "esxi") {
-      runEsxiGrab(host)
+      new EsxiClient(config.esxiGrabLocation, config.out.getAbsolutePath).runEsxiGrab(host, index)
     } else if (host.os.toLowerCase == "windows") {
-      runWindowsGrab(host)
+      new WindowsClient(config.wmiClientLocation, config.out.getAbsolutePath).runWindowsGrab(host, index)
     } else if (host.os.toLowerCase == "linux") {
-      runLinuxGrab(host)
+      new SSHClient(config.nixGrabLocation, config.out.getAbsolutePath).runSSHGrab(host, index)
     } else {
       throw new RuntimeException("Invalid operating system provided")
     }
-
-    /** val r = scala.util.Random
-    Thread.sleep(r.nextInt(2000))
-    if (r.nextBoolean())
-      throw new RuntimeException("Imagine something bad happened connecting to a host or processing a grab")
-
-    val output = new File(outputDir, "%s-%s-pretend-i-am-a-grab".format(index, host.address))
-    output.createNewFile()
-      */
   }
 
   def validateHost(host: Host): Unit = {
     // TODO: do I need to validate anything here?
   }
 
-  def runEsxiGrab(host: Host): HostAnalysisResult = {
-    val res: Int = "C:\\Users\\obrier3\\Desktop\\EAT-DEMO\\app\\EMC-ESXi-GRAB-1.3.6\\emcgrab.bat -host 10.73.58.3 -user root -password emc2002 -autoexec -legal -vmsupport –noclariion" !
-
-    new HostAnalysisResult()
-  }
-
-  def runWindowsGrab(host: Host): HostAnalysisResult = {
-    new HostAnalysisResult()
-  }
-
-  def runLinuxGrab(host: Host): HostAnalysisResult = {
-    new HostAnalysisResult()
-  }
 
 }

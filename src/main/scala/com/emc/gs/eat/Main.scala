@@ -28,7 +28,7 @@ object Main extends App {
 
     val listener = system.actorOf(Props[HostAnalysisListener], name = "hostAnalysisListener")
 
-    val master = system.actorOf(Props(new EatMaster(config.hostFiles, config.out, listener)),
+    val master = system.actorOf(Props(new EatMaster(config, listener)),
       name = "eatMaster")
 
     master ! ProcessHosts

@@ -28,6 +28,18 @@ object CommandLineInput {
       } validate {
         x => validateInputFiles(x)
       } text "Required csv host data to process. Can be provided in one or more files."
+      opt[String]("esxi") action { (x, c) =>
+        c.copy(esxiGrabLocation = x)
+      } text "set location of ESXi grab executable to override the default bundled tool for ESXi hosts"
+      opt[String]("wmi") action { (x, c) =>
+        c.copy(wmiClientLocation = x)
+      } text "set location of the WMI client executable to override the default bundled tool for Windows hosts"
+      opt[String]("nix") action { (x, c) =>
+        c.copy(nixGrabLocation = x)
+      } text "set location of the Linux grab to override the default bundled tool for Linux hosts"
+      opt[Int]('w', "workers") action { (x, c) =>
+        c.copy(workers = x)
+      } text "set number of workers to use for processing"
       opt[Unit]("verbose") action { (_, c) =>
         c.copy(verbose = true)
       } text "print verbose output"
@@ -65,7 +77,8 @@ object CommandLineInput {
         else {
           if (outDir.list().isEmpty) success
           else {
-            val proceed = readLine("The output directory specified is not empty. Proceed anyway?(N)")
+            println("The output directory specified is not empty. Proceed anyway?(N)")
+            val proceed = readLine()
             if (proceed.toLowerCase == "y" || proceed.toLowerCase == "yes") {
               success
             } else {

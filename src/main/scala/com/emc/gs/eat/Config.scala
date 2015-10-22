@@ -2,6 +2,8 @@ package com.emc.gs.eat
 
 import java.io.File
 
+import com.emc.gs.eat.util.FileUtil
+
 /**
  * The configuration created when the app is run form the command line.
  *
@@ -15,6 +17,10 @@ import java.io.File
 case class Config(
                    hostFiles: Seq[File] = Seq(),
                    out: File = new File("."),
+                   esxiGrabLocation: String = FileUtil.getJarLocation.getParent + File.separator + "ESXi-GRAB" + File.separator + "emcgrab.exe",
+                   wmiClientLocation: String = FileUtil.getJarLocation.getParent + File.separator + "Windows" + File.separator + "WMITest.exe",
+                   nixGrabLocation: String = FileUtil.getJarLocation.getParent + File.separator + "NixGrabs" + File.separator + "emcgrab_Linux_v4.7.1.tar",
+                   workers: Int = 100,
                    verbose: Boolean = false,
                    debug: Boolean = false
                    )
