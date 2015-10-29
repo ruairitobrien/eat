@@ -16,11 +16,7 @@ class HostAnalyzer extends Actor {
   def receive = {
     case AnalyzeHost(host, index, config) =>
       try {
-        analyzeHost(host, index, config) match {
-          case Right(x) => sender ! x
-          case Left(x) => sender ! x
-
-        }
+        analyzeHost(host, index, config)
       } catch {
         case t: Throwable =>
           sender ! AnalyzeHostError(host, "An error occurred processing the host", Some(t))
@@ -36,7 +32,7 @@ class HostAnalyzer extends Actor {
    * @param config the configuration for host analysis
    * @return the host analysis result for feedback to the parent actor
    */
-  def analyzeHost(host: Host, index: Int, config: Config): Either[AnalyzeHostError, AnalyzeHostResult] = {
+  def analyzeHost(host: Host, index: Int, config: Config): AnalyzeHostResult = {
     validateHost(host)
 
     if (host.os.toLowerCase == "esxi") {

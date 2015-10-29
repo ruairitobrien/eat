@@ -2,13 +2,13 @@ package com.emc.gs.eat.clients
 
 import java.util.UUID
 
-import com.emc.gs.eat.actors.{AnalyzeHostError, AnalyzeHostResult}
+import com.emc.gs.eat.actors.AnalyzeHostResult
 import com.emc.gs.eat.host.Host
 import com.emc.gs.eat.util.FileUtil
 
 class EsxiClient(esxiGrabLocation: String, outputDir: String) {
 
-  def runEsxiGrab(host: Host, index: Int): Either[AnalyzeHostError, AnalyzeHostResult] = {
+  def runEsxiGrab(host: Host, index: Int): AnalyzeHostResult = {
     println("running ESXi")
     val temp = FileUtil.createTempDir(UUID.randomUUID().toString)
     try {
@@ -27,7 +27,7 @@ class EsxiClient(esxiGrabLocation: String, outputDir: String) {
       if (temp.exists()) temp.delete()
     }
 
-    Right(new AnalyzeHostResult(host, "%s grab processed successfully using ESXi Grab".format(host.address)))
+    new AnalyzeHostResult(host, "%s grab processed successfully using ESXi Grab".format(host.address))
   }
 
 }
