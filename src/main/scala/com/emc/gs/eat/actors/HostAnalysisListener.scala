@@ -19,6 +19,8 @@ class HostAnalysisListener extends Actor {
       println(message)
       context.system.shutdown()
       System.exit(0)
-    case _ => log.warning("An unexpected message was received by HostAnalysisListener")
+    case _ =>
+      log.warning("An unexpected message was received by HostAnalysisListener")
+      System.exit(1)
   }
 }

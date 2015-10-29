@@ -4,7 +4,7 @@ import akka.actor.Actor
 import akka.event.Logging
 import com.emc.gs.eat.Config
 import com.emc.gs.eat.clients.{EsxiClient, SSHClient, WindowsClient}
-import com.emc.gs.eat.host.{Host, HostAnalysisResult}
+import com.emc.gs.eat.host.Host
 
 /**
  * This actor is in charge of connecting to a host and doing any analysis i.e. executing a grab.
@@ -16,10 +16,13 @@ class HostAnalyzer extends Actor {
   def receive = {
     case AnalyzeHost(host, index, config) =>
       try {
-        sender ! AnalyzeHostResult(analyzeHost(host, index, config))
+        analyzeHost(host, index, config) match {
+          case Right(x) => sender ! x
+          case Left(x) => sender ! x
+
+        }
       } catch {
         case t: Throwable =>
-          println(t)
           sender ! AnalyzeHostError(host, "An error occurred processing the host", Some(t))
       }
     case _ => log.warning("An unexpected message was received by HostAnalyzer")
@@ -33,7 +36,7 @@ class HostAnalyzer extends Actor {
    * @param config the configuration for host analysis
    * @return the host analysis result for feedback to the parent actor
    */
-  def analyzeHost(host: Host, index: Int, config: Config): HostAnalysisResult = {
+  def analyzeHost(host: Host, index: Int, config: Config): Either[AnalyzeHostError, AnalyzeHostResult] = {
     validateHost(host)
 
     if (host.os.toLowerCase == "esxi") {

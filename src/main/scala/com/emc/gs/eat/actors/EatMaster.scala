@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.event.Logging
 import akka.routing.RoundRobinRouter
 import com.emc.gs.eat.Config
-import com.emc.gs.eat.host.HostAnalysisResult
+import com.emc.gs.eat.host.Host
 import com.emc.gs.eat.input.HostInputParser
 import com.github.tototoshi.csv.CSVWriter
 
@@ -32,8 +32,8 @@ class EatMaster(config: Config, listener: ActorRef)
   def receive = {
     case ProcessHosts =>
       parseHostDataAndInitiateAnalysis()
-    case AnalyzeHostResult(hostAnalysisResult) =>
-      processResult(hostAnalysisResult)
+    case AnalyzeHostResult(host, message) =>
+      processResult(host, message)
     case error@AnalyzeHostError(host, message, thrown) => processError(error)
     case _ =>
       log.warning("Invalid message received by EatMaster")
@@ -50,7 +50,7 @@ class EatMaster(config: Config, listener: ActorRef)
       error.host.os,
       error.host.username,
       error.host.password,
-      error.message + " - " + error.error
+      error.message + " - cause: " + error.error.getOrElse("Unknown error")
     )
     incrementAndCheckProcessedHosts()
   }
@@ -58,10 +58,11 @@ class EatMaster(config: Config, listener: ActorRef)
   /**
    * Handle results from individual host analysis
    *
-   * @param hostAnalysisResult the result from a host analysis
+   * @param host the host for which the result is from
+   * @param message message about the analysisi result
    */
-  def processResult(hostAnalysisResult: HostAnalysisResult): Unit = {
-    println(hostAnalysisResult.message)
+  def processResult(host: Host, message: String): Unit = {
+    println(message)
     incrementAndCheckProcessedHosts()
   }
 
