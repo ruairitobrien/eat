@@ -19,7 +19,7 @@ case class Config(
                    out: File = new File("."),
                    esxiGrabLocation: String = FileUtil.getJarLocation.getParent + File.separator + "ESXi-GRAB" + File.separator + "emcgrab.exe",
                    wmiClientLocation: String = FileUtil.getJarLocation.getParent + File.separator + "Windows" + File.separator + "WMITest.exe",
-                   nixGrabLocation: String = FileUtil.getJarLocation.getParent + File.separator + "NixGrabs" + File.separator + "emcgrab_Linux_v4.7.1.tar",
+                   nixGrabLocation: String = FileUtil.getJarLocation.getParent + File.separator + "NixGrabs",
                    workers: Int = 100,
                    verbose: Boolean = false,
                    debug: Boolean = false

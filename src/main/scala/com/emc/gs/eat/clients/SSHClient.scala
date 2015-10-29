@@ -16,14 +16,18 @@ class SSHClient(nixGrabLocation: String, outputDir: String) {
     val grabId = UUID.randomUUID().toString
     val grabLocation = installDir + "/" + grabId
     val hostConfig = new HostConfig(new PasswordLogin(host.username, new SimplePasswordProducer(host.password)), host.address, 22, None, None, None, false, DontVerify)
+    val grab = nixGrabLocation + File.separator + "emcgrab_Linux_v4.7.1.tar"
 
     val uploaded = SSH(host.address, hostConfig) { client =>
-      try client.upload(nixGrabLocation, installDir + "/").right.flatMap { _ =>
+      try client.upload(grab, installDir + "/").right.flatMap { _ =>
         client.exec("ls " + installDir).right.map { result =>
           result.stdOutAsString()
         }
       } finally client.close()
-    }.right.getOrElse("na").contains(new File(nixGrabLocation).getName)
+    } match {
+      case Right(x) => x.contains(new File(grab).getName)
+      case Left(x) => throw new RuntimeException(x)
+    }
 
     if (uploaded) {
       val executed = SSH(host.address, hostConfig) { client =>

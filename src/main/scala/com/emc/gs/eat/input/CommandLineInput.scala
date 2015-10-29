@@ -18,7 +18,7 @@ object CommandLineInput {
   def createCommandLineOptionParser(): OptionParser[Config] = {
     new scopt.OptionParser[Config]("eat") {
       head("eat", "1.x")
-      opt[File]('o', "out") required() valueName "<file>" action { (x, c) =>
+      opt[File]('o', "out") valueName "<file>" action { (x, c) =>
         c.copy(out = x)
       } validate {
         x => validateOutputDir(x)
@@ -28,22 +28,22 @@ object CommandLineInput {
       } validate {
         x => validateInputFiles(x)
       } text "Required csv host data to process. Can be provided in one or more files."
-      opt[String]("esxi") action { (x, c) =>
+      opt[String]('e', "esxi") valueName "<esxi grab location>" action { (x, c) =>
         c.copy(esxiGrabLocation = x)
       } text "set location of ESXi grab executable to override the default bundled tool for ESXi hosts"
-      opt[String]("wmi") action { (x, c) =>
+      opt[String]('w', "wmi") valueName "<wmi client location>" action { (x, c) =>
         c.copy(wmiClientLocation = x)
       } text "set location of the WMI client executable to override the default bundled tool for Windows hosts"
-      opt[String]("nix") action { (x, c) =>
+      opt[String]('n', "nix") valueName "<linux and unix grabs directory>" action { (x, c) =>
         c.copy(nixGrabLocation = x)
-      } text "set location of the Linux grab to override the default bundled tool for Linux hosts"
-      opt[Int]('w', "workers") action { (x, c) =>
+      } text "set location of the Linux grabs to override the default bundled tools for Linux hosts"
+      opt[Int]('t', "workers") action { (x, c) =>
         c.copy(workers = x)
       } text "set number of workers to use for processing"
-      opt[Unit]("verbose") action { (_, c) =>
+      opt[Unit]('v', "verbose") action { (_, c) =>
         c.copy(verbose = true)
       } text "print verbose output"
-      opt[Unit]("debug") hidden() action { (_, c) =>
+      opt[Unit]('d', "debug") hidden() action { (_, c) =>
         c.copy(debug = true)
       } text "start application in debug mode"
       help("help") text "display available commands and information"
