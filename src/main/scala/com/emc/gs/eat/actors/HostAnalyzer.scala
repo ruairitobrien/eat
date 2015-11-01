@@ -16,7 +16,7 @@ class HostAnalyzer extends Actor {
   def receive = {
     case AnalyzeHost(host, index, config) =>
       try {
-        analyzeHost(host, index, config)
+        sender ! analyzeHost(host, index, config)
       } catch {
         case t: Throwable =>
           sender ! AnalyzeHostError(host, "An error occurred processing the host", Some(t))
